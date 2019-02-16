@@ -1,0 +1,22 @@
+[settings]
+service:		youtube
+host:			x.rtmp.youtube.com
+streamkey:		q81s-f0jj-x4tx-7pzk
+app:			live2
+port:			1935
+videocodec:		libx264
+pixfmt:			yuv420p
+videoprofile:	main
+format:			flv
+rate:			30
+preset:			ultrafast
+tune:			zerolatency
+threads:		8
+vbitrate:		5000K
+acodec:			aac
+arate:			48000
+abitrate:		128K
+buffersize:		1000k
+keyint:			120
+bmdindex:		0
+bmdmode:		9

@@ -1,0 +1,22 @@
+[settings]
+service:		switchboard
+host:			ingest-us-east.a.switchboard.zone
+streamkey:		mnsfk-q4xth-9xw3m-00000-10401
+app:			live
+port:			1935
+videocodec:		libx264
+pixfmt:			yuv420p
+videoprofile:		main
+format:			flv
+rate:			30
+preset:			fast
+tune:			fastdecode
+threads:		8
+vbitrate:		2500K
+acodec:			aac
+arate:			48000
+abitrate:		128K
+buffersize:		1000k
+keyint:			120
+bmdindex:		0
+bmdmode:		9

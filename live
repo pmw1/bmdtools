@@ -1,0 +1,103 @@
+#!/usr/bin/python3
+
+#### Imports
+import sys
+import random
+import os
+import time
+import stat
+#### Import Custom Modules
+#import messcolor
+
+user=os.getlogin()
+
+############################### PARSE INPUT ARGS ############################
+#############################################################################
+if __name__ == "__main__":
+	import argparse
+	parser = argparse.ArgumentParser()
+	parser.add_argument('--target', '-t', help="Target Service")
+	parser.add_argument('--profile', '-p', help="Transmission Profile")
+	parser.add_argument('--kill', '-k', help="set to \'1\' to kill both containers")
+	args = parser.parse_args()
+	profilename = args.profile
+
+	if args.kill=="1":
+		os.system('docker rm -f bmdtools')
+		exit()
+
+
+	from configparser import ConfigParser
+	file=("profiles/" + profilename)
+	parser = ConfigParser()
+	parser.read(file)
+	profile=dict(parser.items('settings'))
+########################### END PARSE INPUT ARGS ############################
+#############################################################################
+
+
+
+
+
+
+
+
+def buildEntrypoint():
+	from subprocess import call
+	entrypoint = open("hostfiles/entrypoint.sh", "wb")
+	entrypoint.write(bytes("#!/bin/bash\n", 'UTF-8'))
+	entrypoint.write(bytes("bmdcapture ", 'UTF-8'))
+	entrypoint.write(bytes("-m " + profile.get('bmdmode') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-C " + profile.get('bmdindex') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-A 2 ", 'UTF-8'))
+	entrypoint.write(bytes("-V 4 ", 'UTF-8'))
+	entrypoint.write(bytes("-F nut ", 'UTF-8'))
+	entrypoint.write(bytes("-f pipe:1 ", 'UTF-8'))
+	entrypoint.write(bytes("| ", 'UTF-8'))
+
+	entrypoint.write(bytes("ffmpeg -re -i -  ", 'UTF-8'))
+	entrypoint.write(bytes("-c:v " + profile.get('videocodec') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-x264-params keyint=" + profile.get('keyint') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-pix_fmt " + profile.get('pixfmt') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-profile:v " + profile.get('videoprofile') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-f " + profile.get('format') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-r " + profile.get('rate') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-preset " + profile.get('preset') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-tune " + profile.get('tune') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-threads " + profile.get('threads') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-b:v " + profile.get('vbitrate') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-c:a " + profile.get('acodec') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-ar " + profile.get('arate') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("-bufsize " + profile.get('buffersize') + ' ', 'UTF-8'))
+	entrypoint.write(bytes("\"rtmp://" + profile.get('host') + ':' + str(profile.get('port')) + '/', 'UTF-8'))
+	entrypoint.write(bytes(profile.get('app') + '/', 'UTF-8'))
+	entrypoint.write(bytes(profile.get('streamkey') + '\"\n', 'UTF-8'))
+	entrypoint.close()
+
+
+#URI="rtmp://$HOST/$APP/$STREAMKEY"
+
+
+def dockerLauncher():
+	import subprocess
+	from subprocess import call
+	entrypoint = open("run.sh", "wb")
+	entrypoint.write(bytes("#!/bin/bash\n", 'UTF-8'))
+	entrypoint.write(bytes("user=pmw\n", 'UTF-8'))
+	entrypoint.write(bytes("sudo docker rm -f /bmdtools\n", 'UTF-8'))
+	entrypoint.write(bytes("sudo docker run -i -t --name=\"bmdtools\" --device /dev/blackmagic/io0  --entrypoint=/bin/bash -v /home/$user/apps/bmdtools/hostfiles:/apps/hostfiles --privileged pmw1/bmdtools\n", 'UTF-8'))
+	entrypoint.close()
+	os.chmod('run.sh', stat.S_IXOTH)
+	os.system('sudo ./run.sh')
+
+
+
+
+buildEntrypoint()
+dockerLauncher()
+
+
+
+
+
+
